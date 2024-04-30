@@ -1,7 +1,6 @@
-import matplotlib.pyplot as plt
+import random
+
 import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
 
 
 # Function to predict y value for an array of x values and a given model using theta values
@@ -43,3 +42,11 @@ def gradient_descent(xf, yf, thetaf, learning_rate, iterations):
         thetaf -= learning_rate * gradients  # Update parameters
         loss[it] = mean_squared_error(X, yf, thetaf)  # Record the loss
     return thetaf, loss
+
+
+def tt_split(data_array, test_ratio):
+    random.shuffle(data_array)
+    split = int(len(data_array) * (1 - test_ratio))
+    train_set = data_array[:split]
+    test_set = data_array[split:]
+    return train_set, test_set
