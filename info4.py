@@ -1,6 +1,5 @@
-import random
-
 import numpy as np
+import copy
 
 
 # Function to predict y value for an array of x values and a given model using theta values
@@ -24,7 +23,7 @@ def mean_squared_error(xf, yf, thetaf):
 
 
 # Function to perform gradient descent
-def gradient_descent(xf, yf, thetaf, learning_rate, iterations):
+def gradient_descent(xf, yf, thetaf, learning_rate, iterations, reg):
     loss = np.zeros(iterations)  # Array to keep track of loss at each iteration
     m = len(yf)  # Number of data points
     X = xf
@@ -38,14 +37,15 @@ def gradient_descent(xf, yf, thetaf, learning_rate, iterations):
         errors = prediction - yf
         gradients = np.zeros_like(thetaf)
         for j in range(len(thetaf)):
-            gradients[j] = np.sum(errors * X[:, j]) * 2 / m  # Gradient calculation
-        thetaf -= learning_rate * gradients  # Update parameters
+            gradients[j] = np.sum(errors * X[:, j]) / m  # Gradient calculation
+        thetaf = thetaf*(1-learning_rate*reg/m) - learning_rate * gradients  # Update parameters
         loss[it] = mean_squared_error(X, yf, thetaf)  # Record the loss
     return thetaf, loss
 
 
-def tt_split(data_array, test_ratio):
-    random.shuffle(data_array)
+def tt_split(original_data_array, test_ratio):
+    data_array = copy.deepcopy(original_data_array)
+    np.random.shuffle(data_array)
     split = int(len(data_array) * (1 - test_ratio))
     train_set = data_array[:split]
     test_set = data_array[split:]

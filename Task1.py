@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import info4
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
@@ -85,7 +86,7 @@ loss = np.zeros((iterations, len(theta_mult)))  # Array to store loss values to 
 for it in range(len(theta_mult)):
     theta = theta_mult[it, :]
     print("Durchlauf: ", it + 1, "Theta: ", theta, "Learning Rate: ", learning_rates[it])
-    theta, loss[:, it] = gradient_descent(x_train, y_train, theta, learning_rates[it], iterations)
+    theta, loss[:, it] = info4.gradient_descent(x_train, y_train, theta, learning_rates[it], iterations)
     # Plot graph depending on the amount of thetas
     if len(theta) == 2:
         plt.figure(figsize=(12, 6))
