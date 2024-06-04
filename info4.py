@@ -38,7 +38,7 @@ def gradient_descent(xf, yf, thetaf, learning_rate, iterations, reg):
         gradients = np.zeros_like(thetaf)
         for j in range(len(thetaf)):
             gradients[j] = np.sum(errors * X[:, j]) / m  # Gradient calculation
-        thetaf = thetaf*(1-learning_rate*reg/m) - learning_rate * gradients  # Update parameters
+        thetaf = thetaf * (1 - learning_rate * reg / m) - learning_rate * gradients  # Update parameters
         loss[it] = mean_squared_error(X, yf, thetaf)  # Record the loss
     return thetaf, loss
 
@@ -50,3 +50,25 @@ def tt_split(original_data_array, test_ratio):
     train_set = data_array[:split]
     test_set = data_array[split:]
     return train_set, test_set
+
+
+def centroid_assign_data(centroids, data):
+    k = len(centroids)
+    assignments = [[] for _ in range(k)]
+
+    for i in range(len(data)):
+        sign = 0
+        dist = np.sqrt(np.sum((centroids[0] - data[i]) ** 2))
+        for j in range(1, k):
+            cdist = np.sqrt(np.sum((centroids[j] - data[i]) ** 2))
+            if dist > cdist:
+                dist = cdist
+                sign = j
+        assignments[sign].append(data[i])
+    return assignments
+
+
+def recalculate_centroids(centroids, data):
+    for i in range(len(centroids)):
+        centroids[i] = np.sum(data[i]) / len(data[i])
+    return centroids
