@@ -22,6 +22,15 @@ def mean_squared_error(xf, yf, thetaf):
     return 1 / m * s  # Return mean squared error
 
 
+def sum_squared_error(centroids, assigned_data):
+    sse = 0
+    for i in range(len(centroids)):
+        if len(assigned_data[i]) > 0:
+            diff = np.subtract(assigned_data[i], centroids[i])
+            sse += np.sum(diff ** 2)
+    return sse
+
+
 # Function to perform gradient descent
 def gradient_descent(xf, yf, thetaf, learning_rate, iterations, reg):
     loss = np.zeros(iterations)  # Array to keep track of loss at each iteration
@@ -68,7 +77,9 @@ def centroid_assign_data(centroids, data):
     return assignments
 
 
-def recalculate_centroids(centroids, data):
-    for i in range(len(centroids)):
-        centroids[i] = np.sum(data[i]) / len(data[i])
-    return centroids
+def recalculate_centroids(centroids, assigned_data):
+    c_centroids = centroids.copy()
+    for i in range(len(c_centroids)):
+        if len(assigned_data[i]) > 0:
+            c_centroids[i] = np.mean(assigned_data[i], axis=0)
+    return c_centroids
