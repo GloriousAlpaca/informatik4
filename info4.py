@@ -64,7 +64,6 @@ def tt_split(original_data_array, test_ratio):
 def centroid_assign_data(centroids, data):
     k = len(centroids)
     assignments = [[] for _ in range(k)]
-
     for i in range(len(data)):
         sign = 0
         dist = np.sqrt(np.sum((centroids[0] - data[i]) ** 2))
