@@ -21,7 +21,7 @@ def create_NN(inputs, hlayers, hnodes, outputs):
     return thetas
 
 
-def parametric_forward_prop(inputs, thetas):
+def forward_prop(inputs, thetas):
     nn_values = []
     nn_values.append(inputs)
     for i in range(len(thetas)):
@@ -30,6 +30,7 @@ def parametric_forward_prop(inputs, thetas):
             nn_w_bias = np.insert(nn_values[i], 0, 1)  # Add bias term
             dot = np.dot(nn_w_bias, thetas[i][j])
             node_value = 1 / (1 + np.exp(-dot))
+            #print("Layer: ", i+1, "Node: ",j+1 ,"Thetas: ", thetas[i][j], "Neural net Values: ", nn_w_bias, "Node Value: ", node_value)
             layer.append(node_value)
         nn_values.append(layer)
     return nn_values
@@ -68,24 +69,41 @@ def update_weights(learning_rate, nn_values, thetas, deltas):
     return new_thetas
 
 
-def learn(inputs, expected_outputs, hlayers, hnodes, outputs, learning_rate, iterations):
-    # Initialize network
-    thetas = create_NN(len(inputs[0]), hlayers, hnodes, outputs)
-
+def learn(inputs, expected_outputs, thetas, learning_rate, iterations):
+    loss = []
     for i in range(iterations):
+        iteration_loss = 0
         for input_data, expected_output in zip(inputs, expected_outputs):
             # Forward propagation
-            nn_values = parametric_forward_prop(input_data, thetas)
+            nn_values = forward_prop(input_data, thetas)
 
-            # Backpropagation
+            # Back propagation
             deltas = back_prop(expected_output, nn_values, thetas)
 
             # Update weights
             thetas = update_weights(learning_rate, nn_values, thetas, deltas)
 
+            # Calculate Loss for this input and accumulate
+            iteration_loss += calculate_loss(expected_output, nn_values[-1])
+        # Average loss over all inputs
+        loss.append(iteration_loss)
         print(f'Iteration {i + 1}/{iterations} completed.')
 
-    return thetas
+    return thetas, loss
+
+
+def calculate_loss(expected, output):
+    loss = 0.5 * np.sum((expected - output) ** 2)
+    return loss
+
+
+def test_nn(inputs, expected_outputs, thetas):
+    print("Testing Neural Network")
+    for input_data, expected_output in zip(inputs, expected_outputs):
+        nn_values = forward_prop(input_data, thetas)
+        predicted = np.array(nn_values[-1]) > 0.5  # Threshold for classification
+        print(f"Input: {input_data.tolist()}, Predicted: {predicted.tolist()}, Actual: {expected_output.tolist()}")
+
 
 def visualize_thetas(thetas):
     num_matrices = len(thetas)
@@ -100,7 +118,7 @@ def visualize_thetas(thetas):
         ax.set_ylabel('Neurons')
 
     plt.tight_layout()
-    plt.show()
+    plt.show(block=False)
 
 
 def visualize_nn_values(nn_values):
@@ -117,28 +135,36 @@ def visualize_nn_values(nn_values):
             cax = ax.matshow(np.array(layer).reshape(-1, 1), cmap='viridis')
         fig.colorbar(cax, ax=ax)
         ax.set_title(f'Layer {i} values')
-        ax.set_xlabel('Neurons')
-        ax.set_ylabel('Samples')
+        ax.set_ylabel('Neuron')
 
     plt.tight_layout()
-    plt.show()
+    plt.show(block=False)
 
 
-# Example Usage for XOR
+def visualize_loss(loss):
+    plt.figure()
+    plt.plot(loss)
+    plt.xlabel('Iterations')
+    plt.ylabel('Loss')
+    plt.title('Loss over iterations')
+    plt.show(block=False)
+
 inputs = np.array([[0, 1], [1, 0], [1, 1], [0, 0]])
-expected_outputs = np.array([[0], [0], [1], [0]])
+expected_outputs = np.array([[1], [1], [0], [0]])
+inodes = 2
 hlayers = 1
-nodes = 3
+hnodes = 2
 outputs = 1
 learning_rate = 0.1
 epochs = 10000
+thetas = create_NN(inodes, hlayers, hnodes, outputs)
 
-# Training durchführen
-trained_thetas = learn(inputs, expected_outputs, hlayers, nodes, outputs, learning_rate, epochs)
+trained_thetas, loss = learn(inputs, expected_outputs, thetas, learning_rate, epochs)
 
-# Visualisierung der trainierten Gewichte
 visualize_thetas(trained_thetas)
 
-# Vorwärtsausbreitung und Visualisierung der Netzwerkausgaben
-nn_values = parametric_forward_prop([1, 1], trained_thetas)
+nn_values = forward_prop([1, 1], trained_thetas)
 visualize_nn_values(nn_values)
+visualize_loss(loss)
+test_nn(inputs, expected_outputs, trained_thetas)
+plt.show()
