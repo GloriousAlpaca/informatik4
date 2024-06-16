@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+
 import Neural_Networks as NN  # Import custom neural network module
 
 # Define initial data parameters
