@@ -15,7 +15,7 @@ max_val = 1  # Maximum value for input data
 
 # Generate random inputs uniformly distributed between min_val and max_val
 inputs = np.random.uniform(low=min_val, high=max_val, size=(data_amount, 1))
-# Compute corresponding outputs using a polynomial relationship
+# Compute corresponding outputs using the polynomial
 outputs = 3 * inputs ** 5 + 1.5 * inputs ** 4 + 2 * inputs ** 3 + 7 * inputs + 0.5
 
 # Activation function and its derivative
@@ -23,7 +23,7 @@ act_func = NN.relu, NN.relu_derivative
 # Initialize neural network parameters
 thetas = NN.create_NN(1, 2, 8, 1, 14, -0.1, 0.1)
 lr = 0.01  # Learning rate
-iter = 100  # Number of training iterations
+iter = 1000  # Number of training iterations
 
 # Train the neural network
 trained_thetas, loss = NN.learn(inputs, outputs, thetas, lr, iter, act_func[0], act_func[1], NN.mse_loss,

@@ -23,11 +23,6 @@ def relu_derivative(x):
     return np.where(x > 0, 1, 0)  # 1 where x is positive, otherwise 0
 
 
-# Quadratic loss function
-def quadratic_loss(expected, output):
-    return 0.5 * np.sum((expected - output) ** 2)  # Sum of squared differences
-
-
 # Mean squared error loss function
 def mse_loss(expected, output):
     return 0.5 * np.mean((expected - output) ** 2)  # Mean of squared differences
@@ -37,6 +32,10 @@ def mse_loss(expected, output):
 def mse_loss_derivative(expected, output):
     return output - expected  # Gradient of MSE loss
 
+
+# Quadratic loss function
+def quadratic_loss(expected, output):
+    return 0.5 * np.sum((expected - output) ** 2)  # Sum of squared differences
 
 # Function to create a neural network with specified topology
 def create_NN(inputs, hlayers, hnodes, outputs, seed=None, weight_min=-0.1, weight_max=0.1):
@@ -98,12 +97,13 @@ def back_prop(expected_out, nn_z, thetas, activation_derivative, loss_derivative
 # Update weights of the network based on error gradients
 def update_weights(learning_rate, nn_values, thetas, deltas):
     new_thetas = []
-    for i, theta in enumerate(thetas):
+    for i in range(len(thetas)):
         layer = []
-        for j, t in enumerate(theta):
-            node_thetas = [t[0] - learning_rate * deltas[i][j]]  # Update bias term
-            for k in range(1, len(t)):
-                new_theta = t[k] - learning_rate * nn_values[i][k - 1] * deltas[i][j]
+        for j in range(len(thetas[i])):
+            node_thetas = [thetas[i][j][0] - learning_rate * deltas[i][j]]  # Bias Update
+            for k in range(1, len(thetas[i][j])):
+                # i: Current Layer j:Current Source node k:Current Destination
+                new_theta = thetas[i][j][k] - learning_rate * nn_values[i][k-1] * deltas[i][j]
                 node_thetas.append(new_theta)
             layer.append(node_thetas)
         new_thetas.append(layer)
@@ -152,7 +152,7 @@ def visualize_thetas(thetas):
         ax = axes[i]
         cax = ax.matshow(theta, cmap='viridis')
         fig.colorbar(cax, ax=ax)
-        ax.set_title(f'Theta Matrix {i + 1}')
+        ax.set_title(f'Layer {i} to {i + 1}')
         ax.set_xlabel('Inputs')
         ax.set_ylabel('Neurons')
     plt.tight_layout()
