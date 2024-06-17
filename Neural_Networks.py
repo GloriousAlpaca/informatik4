@@ -31,6 +31,16 @@ def linear_derivative(x):
     return 1
 
 
+def softmax(x):
+    exps = np.exp(x)
+    return exps / np.sum(exps)
+
+
+def softmax_derivative(softmax_output):
+    s = softmax_output.reshape(-1, 1)
+    return np.diagflat(s) - np.dot(s, s.T)
+
+
 # Mean squared error loss function
 def mse_loss(expected, output):
     return 0.5 * np.mean((expected - output) ** 2)  # Mean of squared differences
@@ -128,7 +138,7 @@ def update_weights(learning_rate, nn_values, neural_net, deltas):
             node_thetas = [neural_net.thetas[i][j][0] - learning_rate * deltas[i][j]]  # Bias Update
             for k in range(1, len(neural_net.thetas[i][j])):
                 # i: Current Layer j:Current Source node k:Current Destination
-                new_theta = neural_net.thetas[i][j][k] - learning_rate * nn_values[i][k-1] * deltas[i][j]
+                new_theta = neural_net.thetas[i][j][k] - learning_rate * nn_values[i][k - 1] * deltas[i][j]
                 node_thetas.append(new_theta)
             layer.append(node_thetas)
         new_thetas.append(layer)

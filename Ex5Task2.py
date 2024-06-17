@@ -19,7 +19,7 @@ outputs = 3 * inputs ** 5 + 1.5 * inputs ** 4 + 2 * inputs ** 3 + 7 * inputs + 0
 
 # Activation function and its derivative
 hid_func = [NN.relu, NN.relu_derivative]
-out_func = [NN.linear, NN.linear_derivative]
+out_func = [NN.softmax, NN.softmax_derivative]
 # Initialize neural network parameters
 neural_net = NN.create_NN(1, 2, 8, 1, hid_func, out_func, 14, -0.1, 0.1)
 lr = 0.5  # Learning rate
@@ -37,7 +37,7 @@ predictions = []
 # Predict outputs for the inputs using the trained neural network
 for input_data in inputs:
     nn_values = NN.forward_prop(input_data, trained_net)
-    predicted = nn_values[1][-1]
+    predicted = nn_values[0][-1]
     predictions.append(predicted)
 
 predictions = np.array(predictions).reshape(-1, 1)
