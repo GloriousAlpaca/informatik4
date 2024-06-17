@@ -73,8 +73,8 @@ def create_NN(inputs, hlayers, hnodes, outputs, hidden_func, output_func, seed=N
 
     neural_net = Neural_Network()
     neural_net.thetas = thetas
-    neural_net.hidden_activation_func = hidden_func
-    neural_net.output_activation_func = output_func
+    neural_net.hidden_activation = hidden_func
+    neural_net.output_activation = output_func
 
     return neural_net
 
@@ -105,8 +105,10 @@ def forward_prop(inputs, neural_net):
 # Backpropagation function to calculate gradients
 def back_prop(expected_out, nn_z, neural_net, loss_derivative):
     deltas = []  # Error terms
+    # Compute Output Nodes after Activation Function
+    outputs = neural_net.output_activation[0](np.array(nn_z[-1]))
     # Calculate output error
-    output_error = loss_derivative(expected_out, nn_z[-1]) * neural_net.output_activation[1](np.array(nn_z[-1]))
+    output_error = loss_derivative(expected_out, outputs) * neural_net.output_activation[1](np.array(nn_z[-1]))
     deltas.append(output_error)
     # Propagate errors back through network
     for i in reversed(range(1, len(nn_z) - 1)):

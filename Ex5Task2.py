@@ -8,7 +8,7 @@ inputs = []
 outputs = []
 
 # Updated data parameters
-data_amount = 1000  # Total number of data points
+data_amount = 100  # Total number of data points
 min_val = -1  # Minimum value for input data
 max_val = 1  # Maximum value for input data
 
@@ -21,9 +21,9 @@ outputs = 3 * inputs ** 5 + 1.5 * inputs ** 4 + 2 * inputs ** 3 + 7 * inputs + 0
 hid_func = [NN.relu, NN.relu_derivative]
 out_func = [NN.linear, NN.linear_derivative]
 # Initialize neural network parameters
-neural_net = NN.create_NN(1, 2, 8, 1, hid_func, out_func, 14, -0.1, 0.1)
-lr = 0.5  # Learning rate
-iter = 100  # Number of training iterations
+neural_net = NN.create_NN(1, 2, 64, 1, hid_func, out_func, 14, -0.1, 0.1)
+lr = 0.01  # Learning rate
+iter = 100 # Number of training iterations
 
 # Train the neural network
 trained_net, loss = NN.learn(inputs, outputs, neural_net, lr, iter,
