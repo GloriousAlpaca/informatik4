@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 # Define the sigmoid activation function
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))  # Logistic function
@@ -36,11 +35,6 @@ def softmax(x):
     return exps / np.sum(exps)
 
 
-def softmax_derivative(softmax_output):
-    s = softmax_output.reshape(-1, 1)
-    return np.diagflat(s) - np.dot(s, s.T)
-
-
 # Mean squared error loss function
 def mse_loss(expected, output):
     return 0.5 * np.mean((expected - output) ** 2)  # Mean of squared differences
@@ -54,6 +48,31 @@ def mse_loss_derivative(expected, output):
 # Quadratic loss function
 def quadratic_loss(expected, output):
     return 0.5 * np.sum((expected - output) ** 2)  # Sum of squared differences
+
+
+# Logarithmic loss function (cross-entropy loss)
+def log_loss(expected, output):
+    epsilon = 1e-15  # Small constant to prevent log(0)
+    output = np.clip(output, epsilon, 1 - epsilon)  # Clip output to avoid log(0)
+    return -np.sum(expected * np.log(output) + (1 - expected) * np.log(1 - output)) / len(expected)
+
+
+# Derivative of the log loss function
+def log_loss_derivative(expected, output):
+    epsilon = 1e-15  # Small constant to prevent division by zero
+    output = np.clip(output, epsilon, 1 - epsilon)  # Clip output to avoid division by zero
+    return (output - expected) / (output * (1 - output))
+
+
+def cross_entropy_loss(expected, output):
+    epsilon = 1e-15  # Small constant to prevent log(0)
+    output = np.clip(output, epsilon, 1 - epsilon)  # Clip output to avoid log(0)
+    return -np.sum(expected * np.log(output))
+
+
+# Derivative of the Cross Entropy Loss function
+def cross_entropy_loss_derivative(expected, output):
+    return output - expected
 
 
 class Neural_Network:
@@ -102,13 +121,15 @@ def forward_prop(inputs, neural_net):
             node_weights = neural_net.thetas[i][j]
             dot = np.dot(nn_w_bias, node_weights)
             layer_z.append(dot)
-            if i == len(neural_net.thetas) - 1:
-                layer_a.append(neural_net.output_activation[0](dot))  # Apply output activation function
-            else:
-                layer_a.append(neural_net.hidden_activation[0](dot))  # Apply hidden activation function
+        if i == len(neural_net.thetas) - 1:
+            layer_a = neural_net.output_activation[0](np.array(layer_z))
+        else:
+            layer_a = neural_net.hidden_activation[0](np.array(layer_z))
         nn_z.append(layer_z)
         nn_a.append(layer_a)
-
+    #if np.any(nn_a[-1] == 1):
+    #    print("Warning: An element in the outputs array is equal to 1. (Overflow Danger)")
+    #print(f"Output Value: {nn_a[-1]} Output Input:{nn_z[-1]}")
     return nn_a, nn_z
 
 
@@ -118,7 +139,9 @@ def back_prop(expected_out, nn_z, neural_net, loss_derivative):
     # Compute Output Nodes after Activation Function
     outputs = neural_net.output_activation[0](np.array(nn_z[-1]))
     # Calculate output error
-    output_error = loss_derivative(expected_out, outputs) * neural_net.output_activation[1](np.array(nn_z[-1]))
+    loss_deriv = loss_derivative(expected_out, outputs)
+    activ_deriv = neural_net.output_activation[1](np.array(nn_z[-1]))
+    output_error = loss_deriv * activ_deriv
     deltas.append(output_error)
     # Propagate errors back through network
     for i in reversed(range(1, len(nn_z) - 1)):
@@ -144,6 +167,7 @@ def update_weights(learning_rate, nn_values, neural_net, deltas):
                 node_thetas.append(new_theta)
             layer.append(node_thetas)
         new_thetas.append(layer)
+    #print(f"New Thetas: {new_thetas[-1]}")
     return new_thetas
 
 
@@ -159,7 +183,7 @@ def learn(inputs, expected_outputs, neural_net, learning_rate, iterations,
             deltas = back_prop(expected_output, nn_z, neural_net, loss_derivative)
             neural_net.thetas = update_weights(learning_rate, nn_a, neural_net, deltas)
             # Compute and accumulate loss
-            iteration_loss += loss_func(expected_output, nn_z[-1])
+            iteration_loss += loss_func(expected_output, nn_a[-1])
         loss.append(iteration_loss / len(inputs))  # Average loss for this iteration
         print(f'Iteration {i + 1}/{iterations} completed. Loss: {iteration_loss}')
         # Early stopping condition
@@ -174,11 +198,20 @@ def learn(inputs, expected_outputs, neural_net, learning_rate, iterations,
 def test_nn(inputs, expected_outputs, neural_net):
     print("Testing Neural Network")
     for input_data, expected_output in zip(inputs, expected_outputs):
-        nn_values, _ = forward_prop(input_data, neural_net)  # assuming sigmoid used for forward prop
+        nn_values, _ = forward_prop(input_data, neural_net)
         predicted = np.array(nn_values[-1])
         diff = expected_output - predicted
-        print(
-            f"Input: {input_data.tolist()}, Predicted: {predicted.tolist()}, Actual: {expected_output.tolist()}, Difference: {diff.tolist()}")
+        print(f"Predicted: {predicted.tolist()}, Actual: {expected_output.tolist()}, Difference: {diff.tolist()}")
+
+
+def class_test_nn(inputs, expected_outputs, neural_net):
+    correct = 0
+    for input_data, expected_output in zip(inputs, expected_outputs):
+        nn_values, _ = forward_prop(input_data, neural_net)
+        predicted = np.argmax(np.array(nn_values[-1]))
+        if predicted == np.argmax(expected_output):
+            correct +=1
+    print(f"Correctly predicted: {correct/len(expected_outputs)*100}%")
 
 
 # Function to visualize weights of the neural network
@@ -219,3 +252,34 @@ def visualize_loss(loss):
     plt.ylabel('Loss')
     plt.title('Loss over iterations')
     plt.show(block=False)
+
+
+def visualize_confusion_matrix(inputs, expected_outputs, labels, neural_net):
+    predictions = []
+    for input_data in inputs:
+        nn_values, _ = forward_prop(input_data, neural_net)
+        predicted = np.array(nn_values[-1])
+        predictions.append(predicted)
+
+    predicted_classes = np.argmax(predictions, axis=1)
+    actual_classes = np.argmax(expected_outputs, axis=1)
+
+    conf_matrix = np.zeros((labels, labels))
+
+    for pred, actual in zip(predicted_classes, actual_classes):
+        conf_matrix[actual, pred] +=1
+
+    # Plot confusion matrix using matplotlib matshow
+    fig, ax = plt.subplots(figsize=(10, 10))
+    cax = ax.matshow(conf_matrix, cmap='cool')
+    fig.colorbar(cax)
+
+    for (i, j), val in np.ndenumerate(conf_matrix):
+        ax.text(j, i, f'{val}', ha='center', va='center', color='white')
+
+    ax.set_xlabel('Predicted')
+    ax.set_ylabel('Actual')
+    ax.set_title('Confusion Matrix')
+    plt.xticks(np.arange(10))
+    plt.yticks(np.arange(10))
+    plt.show(block = False)
