@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 # Define the sigmoid activation function
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))  # Logistic function
@@ -112,7 +113,6 @@ def create_NN(inputs, hlayers, hnodes, outputs, hidden_func, output_func, seed=N
 def forward_prop(inputs, neural_net):
     nn_a = [inputs]  # Activation values
     nn_z = [inputs]
-
     for i in range(len(neural_net.thetas)):
         nn_w_bias = np.insert(nn_a[-1], 0, 1)  # Add bias term to input
         layer_a = []
@@ -127,9 +127,6 @@ def forward_prop(inputs, neural_net):
             layer_a = neural_net.hidden_activation[0](np.array(layer_z))
         nn_z.append(layer_z)
         nn_a.append(layer_a)
-    #if np.any(nn_a[-1] == 1):
-    #    print("Warning: An element in the outputs array is equal to 1. (Overflow Danger)")
-    #print(f"Output Value: {nn_a[-1]} Output Input:{nn_z[-1]}")
     return nn_a, nn_z
 
 
@@ -283,3 +280,20 @@ def visualize_confusion_matrix(inputs, expected_outputs, labels, neural_net):
     plt.xticks(np.arange(10))
     plt.yticks(np.arange(10))
     plt.show(block = False)
+
+
+def visualize_predictions(inputs, expected_outputs, neural_net):
+    num_samples = min(10, len(inputs))  # Display at most 10 samples
+    fig, axes = plt.subplots(1, num_samples, figsize=(15, 5))
+    for i in range(num_samples):
+        input_data = inputs[i]
+        expected_output = expected_outputs[i]
+        nn_values, _ = forward_prop(input_data, neural_net)
+        predicted = np.argmax(np.array(nn_values[-1]))
+        actual = np.argmax(expected_output)
+        ax = axes[i]
+        ax.imshow(input_data.reshape(28, 28), cmap='gray')
+        ax.set_title(f'Pred: {predicted}\nActual: {actual}')
+        ax.axis('off')
+    plt.tight_layout()
+    plt.show()

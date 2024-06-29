@@ -45,3 +45,6 @@ NN.class_test_nn(X_test, y_test, trained_net)
 # Test the neural network and get predictions
 NN.visualize_confusion_matrix(X_test, y_test, 10, trained_net)
 plt.show()
+
+# Function to visualize predictions vs actuals
+NN.visualize_predictions(X_test, y_test, trained_net)
