@@ -69,39 +69,55 @@ def qlearn(max_episodes, qtable, max_steps, epsilon, alpha):
             print(f'{progress:.2f}% of Episodes done. Epsilon: {epsilon}')
     return qtable, rewards, steps
 
-def test_qtable(env, qtable, episodes=1, max_steps=100):
+
+def test_qtable(env, qtable, episodes=1, max_steps=100, render=False):
+    rewards = []
+    steps = []
     for episode in range(episodes):
         state, _ = env.reset()
         done = False
         ep_reward = 0
+        ep_step = 0
         print(f"Episode {episode + 1}")
-        for step in range(max_steps):
-            env.render()  # Visualize the environment
+        while not done:
+            if render:
+                env.render()  # Visualize the environment
             action = np.argmax(qtable[state, :])  # Choose the best action based on the Q-table
             new_state, reward, done, truncated, _ = env.step(action)
             ep_reward += reward
+            ep_step += 1
             state = new_state
-            if done:
+            if ep_step > max_steps:
                 break
         print(f"Total reward: {ep_reward}")
-    env.close()
+        rewards.append(ep_reward)
+        steps.append(ep_step)
+    if render:
+        env.close()
+    return rewards, steps
 
 
-qtable, rewards, steps = qlearn(train_episodes, qtable, max_steps, epsilon, alpha)
+qtable, train_rewards, train_steps = qlearn(train_episodes, qtable, max_steps, epsilon, alpha)
 # Create Taxi environment with render_mode for testing
-#test_env = gym.make("Taxi-v3", render_mode="human")
-#test_qtable(test_env, qtable)
+test_env = gym.make("Taxi-v3")
+test_rewards, test_steps = test_qtable(test_env, qtable, test_episodes, max_steps)
 
 # Plot rewards and steps per episode
 plt.figure(figsize=(12, 5))
+
+# Plot combined rewards
 plt.subplot(1, 2, 1)
-plt.plot(rewards)
+plt.plot(train_rewards + test_rewards, label='Combined Rewards')  # Plot combined rewards
+plt.axvline(x=len(train_rewards), color='r', linestyle='--')  # Dashed red line at the end of training rewards
 plt.xlabel('Episode')
 plt.ylabel('Total Reward')
 plt.title('Total Rewards per Episode')
+plt.legend()
 
+# Plot steps
 plt.subplot(1, 2, 2)
-plt.plot(steps)
+plt.plot(train_steps + test_steps)  # Plot combined steps
+plt.axvline(x=len(train_steps), color='r', linestyle='--')  # Dashed red line at the end of training rewards
 plt.xlabel('Episode')
 plt.ylabel('Number of Steps')
 plt.title('Number of Steps per Episode')
